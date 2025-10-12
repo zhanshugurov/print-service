@@ -2,157 +2,176 @@
 <html lang="ru">
 
 <head>
-    <meta charset="utf-8" />
-    <title>Сервис печати</title>
-    <style>
-        body {
-            font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background: #f4f6f8;
-            color: #333;
-            margin: 0;
-            padding: 20px;
-        }
+  <meta charset="utf-8" />
+  <title>Сервис печати</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #f4f6f8;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+    }
 
-        h1 {
-            margin-bottom: 20px;
-            font-size: 26px;
-            color: #222;
-        }
+    h1 {
+      margin-bottom: 20px;
+      font-size: 26px;
+      color: #222;
+    }
 
-        h2 {
-            margin: 0 0 12px;
-            font-size: 20px;
-            color: #444;
-            border-left: 4px solid #0078d4;
-            padding-left: 8px;
-        }
+    h2 {
+      margin: 0 0 12px;
+      font-size: 20px;
+      color: #444;
+      border-left: 4px solid #0078d4;
+      padding-left: 8px;
+    }
 
-        section {
-            background: #fff;
-            border-radius: 8px;
-            padding: 16px 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-        }
+    #version-block {
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 10px;
+    }
 
-        button {
-            background: #0078d4;
-            border: none;
-            border-radius: 6px;
-            color: #fff;
-            font-size: 14px;
-            padding: 8px 14px;
-            margin: 6px 6px 6px 0;
-            cursor: pointer;
-            transition: background 0.2s ease;
-        }
+    #update-status {
+      font-size: 13px;
+      color: #666;
+      margin-top: 4px;
+    }
 
-        button:hover {
-            background: #005ea6;
-        }
+    section {
+      background: #fff;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
 
-        select {
-            width: 100%;
-            padding: 6px 8px;
-            font-size: 14px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            margin-top: 6px;
-        }
+    button {
+      background: #0078d4;
+      border: none;
+      border-radius: 6px;
+      color: #fff;
+      font-size: 14px;
+      padding: 8px 14px;
+      margin: 6px 6px 6px 0;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
 
-        label {
-            display: block;
-            margin: 10px 0 6px;
-            font-size: 14px;
-            font-weight: 500;
-        }
+    button:hover {
+      background: #005ea6;
+    }
 
-        input[type="number"],
-        textarea {
-            font-family: inherit;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            padding: 6px 8px;
-            font-size: 14px;
-            margin: 4px 0;
-            width: 100%;
-            box-sizing: border-box;
-        }
+    select {
+      width: 100%;
+      padding: 6px 8px;
+      font-size: 14px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      margin-top: 6px;
+    }
 
-        input[type="checkbox"] {
-            transform: scale(1.2);
-            margin-right: 6px;
-            vertical-align: middle;
-        }
+    label {
+      display: block;
+      margin: 10px 0 6px;
+      font-size: 14px;
+      font-weight: 500;
+    }
 
-        textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
+    input[type="number"],
+    textarea {
+      font-family: inherit;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      padding: 6px 8px;
+      font-size: 14px;
+      margin: 4px 0;
+      width: 100%;
+      box-sizing: border-box;
+    }
 
-        .actions {
-            margin-top: 12px;
-        }
+    input[type="checkbox"] {
+      transform: scale(1.2);
+      margin-right: 6px;
+      vertical-align: middle;
+    }
 
-        .note {
-            font-size: 12px;
-            color: #777;
-            margin-top: 4px;
-        }
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
 
-        #current-printer {
-            font-size: 15px;
-            margin-bottom: 8px;
-        }
-    </style>
+    .actions {
+      margin-top: 12px;
+    }
+
+    .note {
+      font-size: 12px;
+      color: #777;
+      margin-top: 4px;
+    }
+
+    #current-printer {
+      font-size: 15px;
+      margin-bottom: 8px;
+    }
+  </style>
 </head>
 
 <body>
-    <h1>🖨️ Сервис печати</h1>
+  <h1>🖨️ Сервис печати</h1>
 
-    <section>
-        <h2>Принтеры</h2>
-        <div id="current-printer">
-            Выбранный принтер: <strong id="selected-printer">по умолчанию</strong>
-        </div>
-        <button id="btn-refresh">🔄 Обновить список</button>
-        <label for="printers-list">Доступные принтеры:</label>
-        <select id="printers-list" size="5"></select>
-        <div class="note">Выберите принтер, чтобы назначить его по умолчанию.</div>
-    </section>
+  <!-- Версия приложения -->
+  <div id="version-block">
+    Текущая версия: <strong id="app-version">—</strong>
+    <button id="check-update">Проверить обновления</button>
+    <div id="update-status"></div>
+  </div>
 
-    <section>
-        <h2>Настройки</h2>
-        <label for="port">Порт:</label>
-        <input id="port" type="number" placeholder="9100" />
-        <div class="actions">
-            <button id="save-port">💾 Сохранить порт</button>
-        </div>
+  <section>
+    <h2>Принтеры</h2>
+    <div id="current-printer">
+      Выбранный принтер: <strong id="selected-printer">по умолчанию</strong>
+    </div>
+    <button id="btn-refresh">🔄 Обновить список</button>
+    <label for="printers-list">Доступные принтеры:</label>
+    <select id="printers-list" size="5"></select>
+    <div class="note">Выберите принтер, чтобы назначить его по умолчанию.</div>
+  </section>
 
-        <label>
-            <input id="autolaunch" type="checkbox" /> Запускать вместе с Windows
-        </label>
-        <div class="actions">
-            <button id="save-autolaunch">💾 Сохранить автозапуск</button>
-        </div>
-    </section>
+  <section>
+    <h2>Настройки</h2>
+    <label for="port">Порт:</label>
+    <input id="port" type="number" placeholder="9100" />
+    <div class="actions">
+      <button id="save-port">💾 Сохранить порт</button>
+    </div>
 
-    <section>
-        <h2>Тестирование</h2>
-        <button id="test-print">🧾 Отправить тестовую печать</button>
-        <button id="sample-print">📄 Напечатать пример HTML</button>
-    </section>
+    <label>
+      <input id="autolaunch" type="checkbox" /> Запускать вместе с Windows
+    </label>
+    <div class="actions">
+      <button id="save-autolaunch">💾 Сохранить автозапуск</button>
+    </div>
+  </section>
 
-    <section>
-        <h2>Печать через API</h2>
-        <label for="html">HTML-код для печати</label>
-        <textarea id="html"><div style="font-family: Arial">Пример билета<br/>№12345</div></textarea>
-        <div class="actions">
-            <button id="btn-print">🖨️ Напечатать HTML</button>
-        </div>
-    </section>
+  <section>
+    <h2>Тестирование</h2>
+    <button id="test-print">🧾 Отправить тестовую печать</button>
+    <button id="sample-print">📄 Напечатать пример HTML</button>
+  </section>
 
-    <script src="app.js"></script>
+  <section>
+    <h2>Печать через API</h2>
+    <label for="html">HTML-код для печати</label>
+    <textarea id="html"><div style="font-family: Arial">Пример билета<br/>№12345</div></textarea>
+    <div class="actions">
+      <button id="btn-print">🖨️ Напечатать HTML</button>
+    </div>
+  </section>
+
+  <script src="app.js"></script>
 </body>
 
 </html>

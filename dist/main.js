@@ -67,6 +67,23 @@ function createTray() {
     tray.setToolTip("Сервис печати");
     tray.setContextMenu(contextMenu);
 }
+// версия
+electron_1.ipcMain.handle("get-version", () => electron_1.app.getVersion());
+// проверка обновления
+electron_1.ipcMain.handle("check-for-updates", async () => {
+    try {
+        const result = await electron_updater_1.autoUpdater.checkForUpdates();
+        if (result?.updateInfo.version !== electron_1.app.getVersion()) {
+            return { updateAvailable: true, info: result?.updateInfo };
+        }
+        else {
+            return { updateAvailable: false };
+        }
+    }
+    catch (error) {
+        return { error: error.message };
+    }
+});
 // Запрет второго экземпляра
 const gotTheLock = electron_1.app.requestSingleInstanceLock();
 if (!gotTheLock) {
@@ -85,8 +102,9 @@ function createMainWindow() {
     mainWindow = new electron_1.BrowserWindow({
         show: false,
         webPreferences: {
+            preload: path.join(__dirname, "preload.js"),
+            contextIsolation: true,
             nodeIntegration: false,
-            contextIsolation: true
         }
     });
     // keep hidden; used only if you want to show status later
@@ -94,7 +112,7 @@ function createMainWindow() {
 }
 electron_1.app.on("ready", async () => {
     // create hidden window (so webContents APIs work)
-    createMainWindow();
+    const mainWindow = createMainWindow();
     // start API / UI
     (0, api_1.startApi)();
     // трэй
@@ -111,12 +129,16 @@ electron_1.app.on("ready", async () => {
         });
     });
     electron_updater_1.autoUpdater.on('update-downloaded', () => {
-        electron_1.dialog.showMessageBox({
-            type: 'info',
-            title: 'Обновление готово',
-            message: 'Приложение будет перезапущено для установки обновления.',
-        }).then(() => {
-            electron_updater_1.autoUpdater.quitAndInstall();
+        electron_1.dialog
+            .showMessageBox(mainWindow, {
+            type: "info",
+            buttons: ["Перезапустить", "Позже"],
+            title: "Обновление готово",
+            message: "Доступна новая версия. Перезапустить и установить?",
+        })
+            .then((res) => {
+            if (res.response === 0)
+                electron_updater_1.autoUpdater.quitAndInstall();
         });
     });
     electron_updater_1.autoUpdater.on('error', (err) => {
