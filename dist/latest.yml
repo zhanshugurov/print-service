@@ -1,8 +1,8 @@
-version: 1.0.0
+version: 1.0.1
 files:
-  - url: print-service-setup-1.0.0.exe
-    sha512: InCRVUyw9zBB+5t+w/i8N+BHM4uPs7T9rqyekbLlN7ecyylLw2qcx+oAYkNFJMSH8fcyeunMc2d6Mjc/fdtZaQ==
-    size: 184920015
-path: print-service-setup-1.0.0.exe
-sha512: InCRVUyw9zBB+5t+w/i8N+BHM4uPs7T9rqyekbLlN7ecyylLw2qcx+oAYkNFJMSH8fcyeunMc2d6Mjc/fdtZaQ==
-releaseDate: '2025-10-12T17:45:09.732Z'
+  - url: print-service-setup-1.0.1.exe
+    sha512: vj4oy83h1rqbnWFfD5vowXcn0qt48h3Lxb+NlyBly7zWXG4jiG8/Lstp2zqemN/PJYh5NajR8ECDLih8ksDciA==
+    size: 184925040
+path: print-service-setup-1.0.1.exe
+sha512: vj4oy83h1rqbnWFfD5vowXcn0qt48h3Lxb+NlyBly7zWXG4jiG8/Lstp2zqemN/PJYh5NajR8ECDLih8ksDciA==
+releaseDate: '2025-10-12T18:05:12.665Z'

@@ -100,14 +100,27 @@ electron_1.app.on("ready", async () => {
     // трэй
     createTray();
     // autoUpdater (only in packaged builds)
-    electron_updater_1.autoUpdater.on("checking-for-update", () => console.log("Checking for updates..."));
-    electron_updater_1.autoUpdater.on("update-available", info => console.log("Update available", info));
-    electron_updater_1.autoUpdater.on("update-not-available", () => console.log("No update available"));
-    electron_updater_1.autoUpdater.on("error", err => console.error("AutoUpdater error", err));
-    electron_updater_1.autoUpdater.on("download-progress", progress => console.log("Download progress", progress));
-    electron_updater_1.autoUpdater.on("update-downloaded", info => {
-        console.log("Update downloaded; will install on quit");
-        // autoUpdater.quitAndInstall() // optionally call when ready
+    electron_updater_1.autoUpdater.on('checking-for-update', () => {
+        console.log('Проверка обновлений...');
+    });
+    electron_updater_1.autoUpdater.on('update-available', () => {
+        electron_1.dialog.showMessageBox({
+            type: 'info',
+            title: 'Обновление найдено',
+            message: 'Новая версия загружается...',
+        });
+    });
+    electron_updater_1.autoUpdater.on('update-downloaded', () => {
+        electron_1.dialog.showMessageBox({
+            type: 'info',
+            title: 'Обновление готово',
+            message: 'Приложение будет перезапущено для установки обновления.',
+        }).then(() => {
+            electron_updater_1.autoUpdater.quitAndInstall();
+        });
+    });
+    electron_updater_1.autoUpdater.on('error', (err) => {
+        console.error('Ошибка автообновления:', err);
     });
     try {
         electron_updater_1.autoUpdater.checkForUpdatesAndNotify();

@@ -1,6 +1,8 @@
 /node_modules
 *.exe
 *.exe.blockmap
+*.yml
 /dist/*.exe
+/dist/*.yml
 /dist/*.exe.blockmap
 /dist/win-unpacked

@@ -1,5 +1,5 @@
 // src/main.ts
-import { app, BrowserWindow, Menu, Notification, shell, Tray } from "electron";
+import { app, BrowserWindow, dialog, Menu, Notification, shell, Tray } from "electron";
 import { startApi } from "./api";
 import { autoUpdater } from "electron-updater";
 import AutoLaunch from "auto-launch";
@@ -69,14 +69,30 @@ app.on("ready", async () => {
     createTray();
 
     // autoUpdater (only in packaged builds)
-    autoUpdater.on("checking-for-update", () => console.log("Checking for updates..."));
-    autoUpdater.on("update-available", info => console.log("Update available", info));
-    autoUpdater.on("update-not-available", () => console.log("No update available"));
-    autoUpdater.on("error", err => console.error("AutoUpdater error", err));
-    autoUpdater.on("download-progress", progress => console.log("Download progress", progress));
-    autoUpdater.on("update-downloaded", info => {
-        console.log("Update downloaded; will install on quit");
-        // autoUpdater.quitAndInstall() // optionally call when ready
+    autoUpdater.on('checking-for-update', () => {
+        console.log('Проверка обновлений...');
+    });
+
+    autoUpdater.on('update-available', () => {
+        dialog.showMessageBox({
+            type: 'info',
+            title: 'Обновление найдено',
+            message: 'Новая версия загружается...',
+        });
+    });
+
+    autoUpdater.on('update-downloaded', () => {
+        dialog.showMessageBox({
+            type: 'info',
+            title: 'Обновление готово',
+            message: 'Приложение будет перезапущено для установки обновления.',
+        }).then(() => {
+            autoUpdater.quitAndInstall();
+        });
+    });
+
+    autoUpdater.on('error', (err) => {
+        console.error('Ошибка автообновления:', err);
     });
 
     try {

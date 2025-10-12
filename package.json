@@ -1,7 +1,7 @@
 {
   "name": "print-service",
   "productName": "Сервис печати",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "dist/main.js",
   "scripts": {
     "clean": "rm -rf dist || rmdir /s /q dist",
