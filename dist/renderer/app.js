@@ -107,7 +107,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (res.error) {
         updateStatus.textContent = "Ошибка: " + res.error;
       } else if (res.updateAvailable) {
-        updateStatus.textContent = `Найдено обновление ${res.info.version}. Загрузка...`;
+        updateStatus.textContent = `Найдено обновление ${res.info.version}. Фоновая загрузка...`;
       } else {
         updateStatus.textContent = "У вас последняя версия.";
       }

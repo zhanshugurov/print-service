@@ -18,7 +18,6 @@ nsis:
   allowToChangeInstallationDirectory: true
   deleteAppDataOnUninstall: true
 publish:
-  - provider: github
-    owner: zhanshugurov
-    repo: printer-service
+  - provider: generic
+    url: https://dev.youticket.kz/print-service-updates/
 electronVersion: 38.2.0

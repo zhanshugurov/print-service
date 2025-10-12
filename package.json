@@ -1,7 +1,7 @@
 {
   "name": "print-service",
   "productName": "Сервис печати",
-  "version": "1.0.2",
+  "version": "1.0.5",
   "main": "dist/main.js",
   "scripts": {
     "clean": "rm -rf dist || rmdir /s /q dist",
@@ -55,9 +55,8 @@
     },
     "publish": [
       {
-        "provider": "github",
-        "owner": "zhanshugurov",
-        "repo": "printer-service"
+        "provider": "generic",
+        "url": "https://dev.youticket.kz/print-service-updates/"
       }
     ]
   }
