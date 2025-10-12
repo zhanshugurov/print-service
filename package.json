@@ -1,0 +1,64 @@
+{
+  "name": "print-service",
+  "productName": "Сервис печати",
+  "version": "1.0.0",
+  "main": "dist/main.js",
+  "scripts": {
+    "clean": "rm -rf dist || rmdir /s /q dist",
+    "build:ts": "tsc",
+    "copy:ui": "cpx \"src/renderer/**/*\" dist/renderer",
+    "build": "npm run clean && npm run build:ts && npm run copy:ui",
+    "start": "npm run build && electron .",
+    "package": "npm run build && electron-builder --win --x64"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "auto-launch": "^5.0.6",
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "electron-updater": "^6.6.2",
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/auto-launch": "^5.0.5",
+    "@types/body-parser": "^1.19.6",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.6.2",
+    "cpx": "^1.5.0",
+    "electron": "^38.2.0",
+    "electron-builder": "^26.0.12",
+    "typescript": "^5.9.3"
+  },
+  "build": {
+    "appId": "com.ticketing.printservice",
+    "productName": "Сервис печати",
+    "files": [
+      "dist/**/*",
+      "assets/**/*"
+    ],
+    "win": {
+      "icon": "assets/icon.ico",
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": true
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "zhanshugurov",
+        "repo": "printer-service"
+      }
+    ]
+  }
+}

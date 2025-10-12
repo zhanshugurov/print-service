@@ -1,0 +1,24 @@
+directories:
+  output: dist
+  buildResources: build
+appId: com.ticketing.printservice
+productName: Сервис печати
+files:
+  - filter:
+      - dist/**/*
+      - assets/**/*
+win:
+  icon: assets/icon.ico
+  target:
+    - nsis
+nsis:
+  oneClick: false
+  perMachine: true
+  allowElevation: true
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: true
+publish:
+  - provider: github
+    owner: zhanshugurov
+    repo: printer-service
+electronVersion: 38.2.0

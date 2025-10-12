@@ -1,0 +1,6 @@
+/node_modules
+*.exe
+*.exe.blockmap
+/dist/*.exe
+/dist/*.exe.blockmap
+/dist/win-unpacked
