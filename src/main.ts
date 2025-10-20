@@ -1,12 +1,11 @@
 // src/main.ts
-import { app, BrowserWindow, dialog, Menu, Notification, shell, ipcMain, Tray } from "electron";
+import { app, dialog, Menu, Notification, shell, ipcMain, Tray } from "electron";
 import { startApi } from "./api";
 import { autoUpdater } from "electron-updater";
 import AutoLaunch from "auto-launch";
 import { loadConfig } from "./config";
 import * as path from "path";
 
-let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 const cfg = loadConfig();
 let serverPort = cfg.port || 9100;
@@ -64,23 +63,7 @@ if (!gotTheLock) {
   });
 }
 
-function createMainWindow() {
-  mainWindow = new BrowserWindow({
-    show: false,
-    webPreferences: {
-      preload: path.join(__dirname, "preload.js"),
-      contextIsolation: true,
-      nodeIntegration: false,
-    }
-  });
-  // keep hidden; used only if you want to show status later
-  return mainWindow;
-}
-
 app.on("ready", async () => {
-  // create hidden window (so webContents APIs work)
-  const mainWindow = createMainWindow();
-
   // start API / UI
   startApi();
 
@@ -102,7 +85,7 @@ app.on("ready", async () => {
 
   autoUpdater.on('update-downloaded', () => {
     dialog
-      .showMessageBox(mainWindow, {
+      .showMessageBox({
         type: "info",
         buttons: ["Перезапустить", "Позже"],
         title: "Обновление готово",
@@ -119,10 +102,21 @@ app.on("ready", async () => {
   });
 
   try {
+    // первая проверка при запуске
     autoUpdater.checkForUpdatesAndNotify();
+
+    // повторная проверка каждый час
+    const ONE_HOUR = 60 * 60 * 1000;
+    setInterval(() => {
+      console.log("Автоматическая проверка обновлений...");
+      autoUpdater.checkForUpdatesAndNotify().catch(err => {
+        console.warn("Ошибка при автопроверке обновлений:", err);
+      });
+    }, ONE_HOUR);
   } catch (e) {
     console.warn("autoUpdater check failed:", e);
   }
+
 
   // auto-launch handling: enable if config says so
   try {

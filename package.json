@@ -1,7 +1,7 @@
 {
   "name": "print-service",
   "productName": "Сервис печати",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "main": "dist/main.js",
   "scripts": {
     "clean": "rm -rf dist || rmdir /s /q dist",
@@ -56,7 +56,7 @@
     "publish": [
       {
         "provider": "generic",
-        "url": "https://dev.youticket.kz/print-service-updates/"
+        "url": "https://files.youticket.kz/print-service-updates/"
       }
     ]
   }

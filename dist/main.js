@@ -43,7 +43,6 @@ const electron_updater_1 = require("electron-updater");
 const auto_launch_1 = __importDefault(require("auto-launch"));
 const config_1 = require("./config");
 const path = __importStar(require("path"));
-let mainWindow = null;
 let tray = null;
 const cfg = (0, config_1.loadConfig)();
 let serverPort = cfg.port || 9100;
@@ -98,21 +97,7 @@ else {
         }).show();
     });
 }
-function createMainWindow() {
-    mainWindow = new electron_1.BrowserWindow({
-        show: false,
-        webPreferences: {
-            preload: path.join(__dirname, "preload.js"),
-            contextIsolation: true,
-            nodeIntegration: false,
-        }
-    });
-    // keep hidden; used only if you want to show status later
-    return mainWindow;
-}
 electron_1.app.on("ready", async () => {
-    // create hidden window (so webContents APIs work)
-    const mainWindow = createMainWindow();
     // start API / UI
     (0, api_1.startApi)();
     // трэй
@@ -130,7 +115,7 @@ electron_1.app.on("ready", async () => {
     });
     electron_updater_1.autoUpdater.on('update-downloaded', () => {
         electron_1.dialog
-            .showMessageBox(mainWindow, {
+            .showMessageBox({
             type: "info",
             buttons: ["Перезапустить", "Позже"],
             title: "Обновление готово",
@@ -145,7 +130,16 @@ electron_1.app.on("ready", async () => {
         console.error('Ошибка автообновления:', err);
     });
     try {
+        // первая проверка при запуске
         electron_updater_1.autoUpdater.checkForUpdatesAndNotify();
+        // повторная проверка каждый час
+        const ONE_HOUR = 60 * 60 * 1000;
+        setInterval(() => {
+            console.log("Автоматическая проверка обновлений...");
+            electron_updater_1.autoUpdater.checkForUpdatesAndNotify().catch(err => {
+                console.warn("Ошибка при автопроверке обновлений:", err);
+            });
+        }, ONE_HOUR);
     }
     catch (e) {
         console.warn("autoUpdater check failed:", e);

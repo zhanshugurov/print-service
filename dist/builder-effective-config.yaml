@@ -19,5 +19,5 @@ nsis:
   deleteAppDataOnUninstall: true
 publish:
   - provider: generic
-    url: https://dev.youticket.kz/print-service-updates/
+    url: https://files.youticket.kz/print-service-updates/
 electronVersion: 38.2.0
