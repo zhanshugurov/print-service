@@ -3,6 +3,8 @@
 *.exe.blockmap
 *.yml
 /dist/*.exe
+/dist/*.js
+/dist/*.yaml
 /dist/*.yml
 /dist/*.exe.blockmap
 /dist/win-unpacked
