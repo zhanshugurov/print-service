@@ -8,9 +8,31 @@ import * as path from "path";
 
 let tray: Tray | null = null;
 let apiStarted = false;
+const PROTOCOL = 'ticketingprint';
 
 const cfg = loadConfig();
 let serverPort = cfg.port || 9100;
+
+function registerProtocol() {
+  let success = false;
+
+  if (process.defaultApp) {
+    // dev-режим или запуск через `electron .` – для Windows можно указать путь к скрипту
+    const exePath = process.execPath;
+    const appPath = path.resolve(process.argv[1]);
+    success = app.setAsDefaultProtocolClient(PROTOCOL, exePath, [appPath]);
+  } else {
+    // установленный .exe
+    success = app.setAsDefaultProtocolClient(PROTOCOL);
+  }
+
+  console.log(`setAsDefaultProtocolClient(${PROTOCOL}) =`, success);
+  console.log(
+    `isDefaultProtocolClient(${PROTOCOL}) =`,
+    app.isDefaultProtocolClient(PROTOCOL)
+  );
+}
+
 
 // ------------------------------
 //   Протокол
@@ -163,6 +185,8 @@ ipcMain.handle("check-for-updates", async () => {
 //   Старт приложения
 // ------------------------------
 app.on("ready", async () => {
+  registerProtocol();
+
   // 1. Проверяем: был ли запуск по протоколу
   const url = process.argv.find((a) => a.startsWith("ticketingprint://"));
   if (url) handleProtocol(url);
