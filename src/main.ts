@@ -1,18 +1,85 @@
 // src/main.ts
 import { app, dialog, Menu, Notification, shell, ipcMain, Tray } from "electron";
-import { startApi } from "./api";
+import { startApi, stopApi } from "./api";
 import { autoUpdater } from "electron-updater";
 import AutoLaunch from "auto-launch";
 import { loadConfig } from "./config";
 import * as path from "path";
 
 let tray: Tray | null = null;
+let apiStarted = false;
+
 const cfg = loadConfig();
 let serverPort = cfg.port || 9100;
 
+// ------------------------------
+//   Протокол
+// ------------------------------
+function handleProtocol(url: string) {
+  console.log("Protocol call:", url);
+
+  if (url === "ticketingprint://start") {
+    startPrintService();
+  }
+
+  if (url === "ticketingprint://ping") {
+    new Notification({
+      title: "Сервис печати",
+      body: "Сервис работает",
+    }).show();
+  }
+}
+
+// ------------------------------
+//   Гарантируем один экземпляр
+// ------------------------------
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on("second-instance", (event, argv) => {
+    const url = argv.find((a) => a.startsWith("ticketingprint://"));
+    if (url) {
+      handleProtocol(url);
+      return;
+    }
+
+    new Notification({
+      title: "Сервис печати",
+      body: "Приложение уже запущено",
+    }).show();
+  });
+}
+
+// ----------------------------------------
+//   Запуск сервисной части (API)
+// ----------------------------------------
+function startPrintService() {
+  if (apiStarted) {
+    console.log("API уже запущен");
+    return;
+  }
+
+  apiStarted = true;
+
+  try {
+    startApi();
+    new Notification({
+      title: "Сервис печати",
+      body: "Локальный сервис запущен",
+    }).show();
+  } catch (err) {
+    console.error("API start error:", err);
+  }
+}
+
+// ------------------------------
+//  Трей
+// ------------------------------
 function createTray() {
   const iconPath = path.join(__dirname, "..", "assets", "icon.png");
   tray = new Tray(iconPath);
+
   const contextMenu = Menu.buildFromTemplate([
     {
       label: "Открыть настройки",
@@ -20,21 +87,65 @@ function createTray() {
         shell.openExternal(`http://localhost:${serverPort}/`);
       },
     },
+    { type: "separator" },
+    {
+      label: "Запустить сервис",
+      click: () => startPrintService(),
+    },
+    { type: "separator" },
     {
       label: "Выйти",
       click: () => {
+        stopApi?.();
         app.quit();
       },
     },
   ]);
+
   tray.setToolTip("Сервис печати");
   tray.setContextMenu(contextMenu);
 }
 
-// версия
+let updateListenersInitialized = false;
+
+function initAutoUpdater() {
+  if (updateListenersInitialized) return;
+  updateListenersInitialized = true;
+
+  autoUpdater.on("update-available", () => {
+    dialog.showMessageBox({
+      type: "info",
+      title: "Обновление найдено",
+      message: "Новая версия загружается...",
+    });
+  });
+
+  autoUpdater.on("update-downloaded", () => {
+    dialog.showMessageBox({
+      type: "info",
+      buttons: ["Перезапустить", "Позже"],
+      title: "Обновление доступно",
+      message: "Установить обновление сейчас?",
+    }).then((res) => {
+      if (res.response === 0) {
+        autoUpdater.quitAndInstall();
+      }
+    });
+  });
+
+  autoUpdater.on("error", (err) => {
+    console.error("Updater error:", err);
+  });
+}
+
+// ------------------------------
+//   Версия
+// ------------------------------
 ipcMain.handle("get-version", () => app.getVersion());
 
-// проверка обновления
+// ------------------------------
+//   Обновления
+// ------------------------------
 ipcMain.handle("check-for-updates", async () => {
   try {
     const result = await autoUpdater.checkForUpdates();
@@ -48,94 +159,51 @@ ipcMain.handle("check-for-updates", async () => {
   }
 });
 
-
-// Запрет второго экземпляра
-const gotTheLock = app.requestSingleInstanceLock();
-if (!gotTheLock) {
-  app.quit();
-} else {
-  app.on("second-instance", () => {
-    // если вдруг попытаются запустить второй экземпляр
-    new Notification({
-      title: "Сервис печати",
-      body: "Приложение уже запущено",
-    }).show();
-  });
-}
-
+// ------------------------------
+//   Старт приложения
+// ------------------------------
 app.on("ready", async () => {
-  // start API / UI
-  startApi();
+  // 1. Проверяем: был ли запуск по протоколу
+  const url = process.argv.find((a) => a.startsWith("ticketingprint://"));
+  if (url) handleProtocol(url);
 
-  // трэй
+  // 2. Стартуем API один раз
+  startPrintService();
+
+  // 3. Трей
   createTray();
 
-  // autoUpdater (only in packaged builds)
-  autoUpdater.on('checking-for-update', () => {
-    console.log('Проверка обновлений...');
-  });
+  // 4. Проверка обновлений
+  initAutoUpdater();
+  autoUpdater.checkForUpdates().catch(() => { });
 
-  autoUpdater.on('update-available', () => {
-    dialog.showMessageBox({
-      type: 'info',
-      title: 'Обновление найдено',
-      message: 'Новая версия загружается...',
+  // 5. Автозапуск
+  try {
+    const launcher = new AutoLaunch({
+      name: "Printer Service",
+      path: app.getPath("exe"),
     });
-  });
 
-  autoUpdater.on('update-downloaded', () => {
-    dialog
-      .showMessageBox({
-        type: "info",
-        buttons: ["Перезапустить", "Позже"],
-        title: "Обновление готово",
-        message: "Доступна новая версия. Перезапустить и установить?",
-      })
-      .then((res) => {
-        if (res.response === 0) autoUpdater.quitAndInstall();
-      });
-
-  });
-
-  autoUpdater.on('error', (err) => {
-    console.error('Ошибка автообновления:', err);
-  });
-
-  try {
-    // первая проверка при запуске
-    autoUpdater.checkForUpdatesAndNotify();
-
-    // повторная проверка каждый час
-    const ONE_HOUR = 60 * 60 * 1000;
-    setInterval(() => {
-      console.log("Автоматическая проверка обновлений...");
-      autoUpdater.checkForUpdatesAndNotify().catch(err => {
-        console.warn("Ошибка при автопроверке обновлений:", err);
-      });
-    }, ONE_HOUR);
-  } catch (e) {
-    console.warn("autoUpdater check failed:", e);
-  }
-
-
-  // auto-launch handling: enable if config says so
-  try {
-    const launcher = new AutoLaunch({ name: "Printer Service", path: app.getPath("exe") });
     if (cfg.autoLaunch) {
-      launcher.enable().catch(e => console.warn("autoLaunch enable failed", e));
+      launcher.enable();
     } else {
-      launcher.disable().catch(() => { });
+      launcher.disable();
     }
   } catch (e) {
-    console.warn("AutoLaunch init fail", e);
+    console.warn("AutoLaunch error:", e);
   }
 });
 
-// avoid app exit when windows closed; we run headless service
+// ------------------------------
+//   Приложение не закрываем
+// ------------------------------
 app.on("window-all-closed", () => {
-  // e.preventDefault();
+  // Ничего не делаем, сервис работает полностью без окон
 });
 
+// ------------------------------
+//   Quit
+// ------------------------------
 app.on("before-quit", () => {
-  // clean-up if needed
+  stopApi?.();
 });

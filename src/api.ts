@@ -1,3 +1,4 @@
+// src/api.ts
 import express from "express";
 import bodyParser from "body-parser";
 import path from "path";
@@ -7,7 +8,43 @@ import { app as electronApp, Notification } from "electron";
 import cors from "cors";
 import { autoUpdater } from "electron-updater";
 
+let server: any = null;         // Express server instance
+let apiRunning = false;         // API state flag
+
+export function isApiRunning() {
+  return apiRunning;
+}
+
+export function stopApi() {
+  return new Promise<void>((resolve) => {
+    if (!apiRunning || !server) {
+      return resolve();
+    }
+
+    console.log("⛔ Остановка PrinterService API...");
+
+    try {
+      server.close(() => {
+        console.log("🛑 PrinterService API остановлен");
+        server = null;
+        apiRunning = false;
+        resolve();
+      });
+    } catch (err) {
+      console.error("Ошибка при остановке API:", err);
+      server = null;
+      apiRunning = false;
+      resolve();
+    }
+  });
+}
+
 export function startApi() {
+  if (apiRunning) {
+    console.log("⚠ API уже запущен — повторный запуск пропущен");
+    return;
+  }
+
   let cfg = loadConfig();
   const app = express();
 
@@ -20,11 +57,9 @@ export function startApi() {
     })
   );
 
-  // Serve static UI
   const rendererPath = path.join(__dirname, "renderer");
   app.use(express.static(rendererPath));
 
-  // Root UI
   app.get("/", (_req, res) => {
     res.sendFile(path.join(rendererPath, "index.html"));
   });
@@ -60,6 +95,7 @@ export function startApi() {
     const num = Number(port);
     if (!Number.isInteger(num) || num <= 0 || num > 65535)
       return res.status(400).json({ error: "invalid port" });
+
     cfg.port = num;
     saveConfig(cfg);
     res.json({ ok: true, port: cfg.port });
@@ -76,7 +112,9 @@ export function startApi() {
   app.post("/api/print", async (req, res) => {
     const { html } = req.body;
     if (!html) return res.status(400).json({ error: "missing html" });
+
     const device = cfg.preferredPrinter || undefined;
+
     try {
       await printHtml(html, device);
       res.json({ ok: true });
@@ -85,7 +123,7 @@ export function startApi() {
       try {
         new Notification({
           title: "Ошибка печати",
-          body: `Не удалось напечатать на принтере "${device || "По умолчанию"}". Проверьте настройки.`,
+          body: `Не удалось напечатать на "${device || "По умолчанию"}"`,
         }).show();
       } catch { }
       res.status(500).json({ error: String(e) });
@@ -99,26 +137,26 @@ export function startApi() {
         <div>Date: ${new Date().toLocaleString()}</div>
         <div>Machine: ${electronApp.getName()} (${process.platform})</div>
       </div>`;
+
     try {
       await printHtml(html, cfg.preferredPrinter || undefined);
       res.json({ ok: true });
     } catch (e) {
-      console.error("Test print error:", e);
       try {
         new Notification({
           title: "Ошибка тестовой печати",
-          body: `Не удалось напечатать на "${cfg.preferredPrinter || "По умолчанию"}". Выберите другой.`,
+          body: `Не удалось напечатать на "${cfg.preferredPrinter || "По умолчанию"}"`,
         }).show();
       } catch { }
       res.status(500).json({ error: String(e) });
     }
   });
 
-  app.get("/api/config", (_req, res) => res.json(cfg));
-
   app.get("/api/version", (_req, res) => {
     res.json({ version: electronApp.getVersion() });
   });
+
+  app.get("/api/config", (_req, res) => res.json(cfg));
 
   app.get("/api/check-for-updates", async (_req, res) => {
     try {
@@ -133,31 +171,33 @@ export function startApi() {
     }
   });
 
-  // Start API
+  // -------------------------------------------
+  // Start API server
+  // -------------------------------------------
   const port = cfg.port || 9100;
-  const server = app.listen(port, "127.0.0.1", () => {
+
+  server = app.listen(port, "127.0.0.1", () => {
+    apiRunning = true;
     console.log(`✅ PrinterService listening at http://localhost:${port}`);
-    // показать уведомление (после готовности Electron)
-    setTimeout(() => {
-      try {
-        new Notification({
-          title: "Сервис печати",
-          body: `Приложение запущено на порту ${port}`,
-        }).show();
-      } catch { }
-    }, 200);
+
+    try {
+      new Notification({
+        title: "Сервис печати",
+        body: `Запущен на порту ${port}`,
+      }).show();
+    } catch { }
   });
 
   server.on("error", (err: any) => {
     console.error("❌ Failed to start server:", err);
-    setTimeout(() => {
-      try {
-        new Notification({
-          title: "Ошибка запуска",
-          body: `Не удалось запустить сервер на порту ${port}`,
-        }).show();
-      } catch { }
-      electronApp.quit();
-    }, 200);
+
+    try {
+      new Notification({
+        title: "Ошибка запуска",
+        body: `Не удалось запустить сервер на порту ${port}`,
+      }).show();
+    } catch { }
+
+    electronApp.quit();
   });
 }

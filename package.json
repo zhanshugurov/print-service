@@ -1,7 +1,7 @@
 {
   "name": "print-service",
   "productName": "Сервис печати",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "main": "dist/main.js",
   "scripts": {
     "clean": "rm -rf dist || rmdir /s /q dist",
@@ -46,6 +46,14 @@
         "nsis"
       ]
     },
+    "protocols": [
+      {
+        "name": "Print Protocol",
+        "schemes": [
+          "ticketingprint"
+        ]
+      }
+    ],
     "nsis": {
       "oneClick": false,
       "perMachine": true,
